@@ -108,7 +108,13 @@ public class RoughlyEnoughItemsNetwork {
         }
     }
     
-    public record CreateItemsHotbarPacketPayload() implements CustomPacketPayload {
+    public record CreateItemsHotbarPacketPayload(ItemStack itemStack, int hotbarSlotId) implements CustomPacketPayload {
+        public static final StreamCodec<RegistryFriendlyByteBuf, CreateItemsHotbarPacketPayload> STREAM_CODEC = StreamCodec.composite(
+                ItemStack.OPTIONAL_STREAM_CODEC, CreateItemsHotbarPacketPayload::itemStack,
+                ByteBufCodecs.VAR_INT, CreateItemsHotbarPacketPayload::hotbarSlotId,
+                CreateItemsHotbarPacketPayload::new
+        );
+        
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
             return CREATE_ITEMS_HOTBAR_PACKET_TYPE;
@@ -127,7 +133,13 @@ public class RoughlyEnoughItemsNetwork {
         }
     }
     
-    public record CreateItemsMessagePacketPayload() implements CustomPacketPayload {
+    public record CreateItemsMessagePacketPayload(ItemStack itemStack, String playerName) implements CustomPacketPayload {
+        public static final StreamCodec<RegistryFriendlyByteBuf, CreateItemsMessagePacketPayload> STREAM_CODEC = StreamCodec.composite(
+                ItemStack.OPTIONAL_STREAM_CODEC, CreateItemsMessagePacketPayload::itemStack,
+                ByteBufCodecs.STRING_UTF8, CreateItemsMessagePacketPayload::playerName,
+                CreateItemsMessagePacketPayload::new
+        );
+        
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
             return CREATE_ITEMS_MESSAGE_PACKET_TYPE;
@@ -204,14 +216,14 @@ public class RoughlyEnoughItemsNetwork {
             newBuf.writeUtf(player.getScoreboardName(), 32767);
             NetworkManager.sendToPlayer(player, RoughlyEnoughItemsNetwork.CREATE_ITEMS_MESSAGE_PACKET, newBuf);
         });
-        NetworkManager.registerReceiver(NetworkManager.c2s(), CREATE_ITEMS_HOTBAR_PACKET, Collections.singletonList(new SplitPacketTransformer()), (buf, context) -> {
+        NetworkManager.registerReceiver(NetworkManager.c2s(), CREATE_ITEMS_HOTBAR_PACKET_TYPE, CreateItemsHotbarPacketPayload.STREAM_CODEC, (payload, context) -> {
             ServerPlayer player = (ServerPlayer) context.getPlayer();
             if (player.getPermissionLevel() < player.level().getServer().operatorUserPermissionLevel()) {
                 player.displayClientMessage(Component.translatable("text.rei.no_permission_cheat").withStyle(ChatFormatting.RED), false);
                 return;
             }
-            ItemStack stack = buf.readLenientJsonWithCodec(ItemStack.OPTIONAL_CODEC);
-            int hotbarSlotId = buf.readVarInt();
+            ItemStack stack = payload.itemStack;
+            int hotbarSlotId = payload.hotbarSlotId;
             if (hotbarSlotId >= 0 && hotbarSlotId < 9) {
                 AbstractContainerMenu menu = player.containerMenu;
                 player.getInventory().setItem(hotbarSlotId, stack.copy());
