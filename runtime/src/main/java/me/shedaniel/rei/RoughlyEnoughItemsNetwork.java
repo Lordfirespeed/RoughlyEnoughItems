@@ -146,7 +146,14 @@ public class RoughlyEnoughItemsNetwork {
         }
     }
     
-    public record MoveItemsNewPacketPayload() implements CustomPacketPayload {
+    public record MoveItemsNewPacketPayload(ResourceLocation categoryName, boolean shift, CompoundTag nbt) implements CustomPacketPayload {
+        public static final StreamCodec<RegistryFriendlyByteBuf, MoveItemsNewPacketPayload> STREAM_CODEC = StreamCodec.composite(
+                ResourceLocation.STREAM_CODEC, MoveItemsNewPacketPayload::categoryName,
+                ByteBufCodecs.BOOL, MoveItemsNewPacketPayload::shift,
+                ByteBufCodecs.COMPOUND_TAG, MoveItemsNewPacketPayload::nbt,
+                MoveItemsNewPacketPayload::new
+        );
+        
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
             return MOVE_ITEMS_NEW_PACKET_TYPE;
@@ -230,15 +237,15 @@ public class RoughlyEnoughItemsNetwork {
                 player.displayClientMessage(Component.translatable("text.rei.failed_cheat_items"), false);
             }
         });
-        NetworkManager.registerReceiver(NetworkManager.c2s(), MOVE_ITEMS_NEW_PACKET, Collections.singletonList(new SplitPacketTransformer()), (packetByteBuf, context) -> {
+        NetworkManager.registerReceiver(NetworkManager.c2s(), MOVE_ITEMS_NEW_PACKET_TYPE, MoveItemsNewPacketPayload.STREAM_CODEC, (payload, context) -> {
             ServerPlayer player = (ServerPlayer) context.getPlayer();
-            CategoryIdentifier<Display> category = CategoryIdentifier.of(packetByteBuf.readResourceLocation());
+            CategoryIdentifier<Display> category = CategoryIdentifier.of(payload.categoryName);
             AbstractContainerMenu container = player.containerMenu;
             InventoryMenu playerContainer = player.inventoryMenu;
             try {
-                boolean shift = packetByteBuf.readBoolean();
+                boolean shift = payload.shift;
                 try {
-                    CompoundTag nbt = packetByteBuf.readNbt();
+                    CompoundTag nbt = payload.nbt;
                     int version = nbt.getInt("Version").orElse(-1);
                     if (version != 1) throw new IllegalStateException("Server and client REI protocol version mismatch! Server: 1, Client: " + version);
                     List<InputIngredient<ItemStack>> inputs = readInputs(context.registryAccess(), nbt.getListOrEmpty("Inputs"));

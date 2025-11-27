@@ -86,12 +86,13 @@ public enum SimpleTransferHandlerImpl implements ClientInternals.SimpleTransferH
             screen.recipeBookComponent.ghostSlots.clear();
         }
         
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), context.getMinecraft().getConnection().registryAccess());
-        buf.writeResourceLocation(context.getDisplay().getCategoryIdentifier().getIdentifier());
-        buf.writeBoolean(context.isStackedCrafting());
+        var packet = new RoughlyEnoughItemsNetwork.MoveItemsNewPacketPayload(
+                context.getDisplay().getCategoryIdentifier().getIdentifier(),
+                context.isStackedCrafting(),
+                save(context, context.getMinecraft().getConnection().registryAccess(), inputs, inputSlots, inventorySlots)
+        );
         
-        buf.writeNbt(save(context, buf.registryAccess(), inputs, inputSlots, inventorySlots));
-        NetworkManager.sendToServer(RoughlyEnoughItemsNetwork.MOVE_ITEMS_NEW_PACKET, buf);
+        NetworkManager.sendToServer(packet);
         return TransferHandler.Result.createSuccessful();
     }
     
