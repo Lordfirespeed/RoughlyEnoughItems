@@ -23,13 +23,10 @@
 
 package me.shedaniel.rei;
 
-import com.mojang.realmsclient.client.Request;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.transformers.SplitPacketTransformer;
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
@@ -65,7 +62,6 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class RoughlyEnoughItemsNetwork {
