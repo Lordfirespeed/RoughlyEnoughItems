@@ -242,7 +242,7 @@ public class RoughlyEnoughItemsCoreClient {
                 client.player.displayClientMessage(Component.literal(I18n.get("text.rei.cheat_items").replaceAll("\\{item_name}", EntryStacks.of(stack.copy()).asFormattedText().getString()).replaceAll("\\{item_count}", stack.copy().getCount() + "").replaceAll("\\{player_name}", player)), false);
             }
         });
-        NetworkManager.registerReceiver(NetworkManager.s2c(), RoughlyEnoughItemsNetwork.NOT_ENOUGH_ITEMS_PACKET, (buf, context) -> {
+        NetworkManager.registerReceiver(NetworkManager.s2c(), RoughlyEnoughItemsNetwork.NOT_ENOUGH_ITEMS_PACKET_TYPE, RoughlyEnoughItemsNetwork.NotEnoughItemsPacketPayload.STREAM_CODEC, (payload, context) -> {
             Screen currentScreen = Minecraft.getInstance().screen;
             if (currentScreen instanceof CraftingScreen craftingScreen) {
                 // TODO: Recipe Ghost

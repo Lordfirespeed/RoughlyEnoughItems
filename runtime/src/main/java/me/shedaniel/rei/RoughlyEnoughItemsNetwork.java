@@ -85,7 +85,6 @@ public class RoughlyEnoughItemsNetwork {
     public static final CustomPacketPayload.Type<CreateItemsMessagePacketPayload> CREATE_ITEMS_MESSAGE_PACKET_TYPE = new CustomPacketPayload.Type<>(CREATE_ITEMS_MESSAGE_PACKET);
     public static final CustomPacketPayload.Type<MoveItemsNewPacketPayload> MOVE_ITEMS_NEW_PACKET_TYPE = new CustomPacketPayload.Type<>(MOVE_ITEMS_NEW_PACKET);
     public static final CustomPacketPayload.Type<NotEnoughItemsPacketPayload> NOT_ENOUGH_ITEMS_PACKET_TYPE = new CustomPacketPayload.Type<>(NOT_ENOUGH_ITEMS_PACKET);
-    public static final CustomPacketPayload.Type<SyncDisplaysPacketPayload> SYNC_DISPLAYS_PACKET_TYPE = new CustomPacketPayload.Type<>(SYNC_DISPLAYS_PACKET);
     
     public record DeleteItemsPacketPayload() implements CustomPacketPayload {
         public static final StreamCodec<RegistryFriendlyByteBuf, DeleteItemsPacketPayload> STREAM_CODEC = new EmptyStreamCodec<>(DeleteItemsPacketPayload::new);
@@ -160,7 +159,14 @@ public class RoughlyEnoughItemsNetwork {
         }
     }
     
-    public record NotEnoughItemsPacketPayload() implements CustomPacketPayload {
+    public record NotEnoughItemsPacketPayload(List<List<ItemStack>> ingredients) implements CustomPacketPayload {
+        public static final StreamCodec<RegistryFriendlyByteBuf, NotEnoughItemsPacketPayload> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.collection(
+                        ArrayList::new, ByteBufCodecs.collection(ArrayList::new, ItemStack.OPTIONAL_STREAM_CODEC)
+                ), NotEnoughItemsPacketPayload::ingredients,
+                NotEnoughItemsPacketPayload::new
+        );
+
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
             return NOT_ENOUGH_ITEMS_PACKET_TYPE;
@@ -262,6 +268,7 @@ public class RoughlyEnoughItemsNetwork {
         });
         if (Platform.getEnvironment() == Env.SERVER) {
             NetworkManager.registerS2CPayloadType(CREATE_ITEMS_MESSAGE_PACKET_TYPE, CreateItemsMessagePacketPayload.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(NOT_ENOUGH_ITEMS_PACKET_TYPE, NotEnoughItemsPacketPayload.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(DisplaySyncPacket.TYPE, DisplaySyncPacket.STREAM_CODEC, List.of(new SplitPacketTransformer()));
         }
     }
