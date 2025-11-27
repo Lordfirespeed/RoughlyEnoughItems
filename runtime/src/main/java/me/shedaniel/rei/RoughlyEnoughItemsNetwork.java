@@ -57,6 +57,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,21 +82,61 @@ public class RoughlyEnoughItemsNetwork {
     public static final CustomPacketPayload.Type<NotEnoughItemsPacketPayload> NOT_ENOUGH_ITEMS_PACKET_TYPE = new CustomPacketPayload.Type<>(NOT_ENOUGH_ITEMS_PACKET);
     public static final CustomPacketPayload.Type<SyncDisplaysPacketPayload> SYNC_DISPLAYS_PACKET_TYPE = new CustomPacketPayload.Type<>(SYNC_DISPLAYS_PACKET);
     
-    public record DeleteItemsPacketPayload() implements CustomPacketPayload {}
+    public record DeleteItemsPacketPayload() implements CustomPacketPayload {
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return DELETE_ITEMS_PACKET_TYPE;
+        }
+    }
     
-    public record CreateItemsPacketPayload() implements CustomPacketPayload {}
+    public record CreateItemsPacketPayload() implements CustomPacketPayload {
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return CREATE_ITEMS_PACKET_TYPE;
+        }
+    }
     
-    public record CreateItemsHotbarPacketPayload() implements CustomPacketPayload {}
+    public record CreateItemsHotbarPacketPayload() implements CustomPacketPayload {
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return CREATE_ITEMS_HOTBAR_PACKET_TYPE;
+        }
+    }
     
-    public record CreateItemsGrabPacketPayload() implements CustomPacketPayload {}
+    public record CreateItemsGrabPacketPayload() implements CustomPacketPayload {
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return CREATE_ITEMS_GRAB_PACKET_TYPE;
+        }
+    }
     
-    public record CreateItemsMessagePacketPayload() implements CustomPacketPayload {}
+    public record CreateItemsMessagePacketPayload() implements CustomPacketPayload {
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return CREATE_ITEMS_MESSAGE_PACKET_TYPE;
+        }
+    }
     
-    public record MoveItemsNewPacketPayload() implements CustomPacketPayload {}
+    public record MoveItemsNewPacketPayload() implements CustomPacketPayload {
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return MOVE_ITEMS_NEW_PACKET_TYPE;
+        }
+    }
     
-    public record NotEnoughItemsPacketPayload() implements CustomPacketPayload {}
+    public record NotEnoughItemsPacketPayload() implements CustomPacketPayload {
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return NOT_ENOUGH_ITEMS_PACKET_TYPE;
+        }
+    }
     
-    public record SyncDisplaysPacketPayload() implements CustomPacketPayload {}
+    public record SyncDisplaysPacketPayload() implements CustomPacketPayload {
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return SYNC_DISPLAYS_PACKET_TYPE;
+        }
+    }
     
     public static void onInitialize() {
         NetworkManager.registerReceiver(NetworkManager.c2s(), DELETE_ITEMS_PACKET, Collections.singletonList(new SplitPacketTransformer()), (buf, context) -> {
