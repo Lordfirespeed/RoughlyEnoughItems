@@ -167,13 +167,6 @@ public class RoughlyEnoughItemsNetwork {
         }
     }
     
-    public record SyncDisplaysPacketPayload() implements CustomPacketPayload {
-        @Override
-        public @NotNull Type<? extends CustomPacketPayload> type() {
-            return SYNC_DISPLAYS_PACKET_TYPE;
-        }
-    }
-    
     public static void onInitialize() {
         NetworkManager.registerReceiver(NetworkManager.c2s(), DELETE_ITEMS_PACKET_TYPE, DeleteItemsPacketPayload.STREAM_CODEC, (payload, context) -> {
             ServerPlayer player = (ServerPlayer) context.getPlayer();
