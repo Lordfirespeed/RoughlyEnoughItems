@@ -47,6 +47,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -70,6 +71,31 @@ public class RoughlyEnoughItemsNetwork {
     public static final ResourceLocation MOVE_ITEMS_NEW_PACKET = ResourceLocation.fromNamespaceAndPath("roughlyenoughitems", "move_items_new");
     public static final ResourceLocation NOT_ENOUGH_ITEMS_PACKET = ResourceLocation.fromNamespaceAndPath("roughlyenoughitems", "og_not_enough");
     public static final ResourceLocation SYNC_DISPLAYS_PACKET = ResourceLocation.fromNamespaceAndPath("roughlyenoughitems", "sync_displays");
+    
+    public static final CustomPacketPayload.Type<DeleteItemsPacketPayload> DELETE_ITEMS_PACKET_TYPE = new CustomPacketPayload.Type<>(DELETE_ITEMS_PACKET);
+    public static final CustomPacketPayload.Type<CreateItemsPacketPayload> CREATE_ITEMS_PACKET_TYPE = new CustomPacketPayload.Type<>(CREATE_ITEMS_PACKET);
+    public static final CustomPacketPayload.Type<CreateItemsHotbarPacketPayload> CREATE_ITEMS_HOTBAR_PACKET_TYPE = new CustomPacketPayload.Type<>(CREATE_ITEMS_HOTBAR_PACKET);
+    public static final CustomPacketPayload.Type<CreateItemsGrabPacketPayload> CREATE_ITEMS_GRAB_PACKET_TYPE = new CustomPacketPayload.Type<>(CREATE_ITEMS_GRAB_PACKET);
+    public static final CustomPacketPayload.Type<CreateItemsMessagePacketPayload> CREATE_ITEMS_MESSAGE_PACKET_TYPE = new CustomPacketPayload.Type<>(CREATE_ITEMS_MESSAGE_PACKET);
+    public static final CustomPacketPayload.Type<MoveItemsNewPacketPayload> MOVE_ITEMS_NEW_PACKET_TYPE = new CustomPacketPayload.Type<>(MOVE_ITEMS_NEW_PACKET);
+    public static final CustomPacketPayload.Type<NotEnoughItemsPacketPayload> NOT_ENOUGH_ITEMS_PACKET_TYPE = new CustomPacketPayload.Type<>(NOT_ENOUGH_ITEMS_PACKET);
+    public static final CustomPacketPayload.Type<SyncDisplaysPacketPayload> SYNC_DISPLAYS_PACKET_TYPE = new CustomPacketPayload.Type<>(SYNC_DISPLAYS_PACKET);
+    
+    public record DeleteItemsPacketPayload() implements CustomPacketPayload {}
+    
+    public record CreateItemsPacketPayload() implements CustomPacketPayload {}
+    
+    public record CreateItemsHotbarPacketPayload() implements CustomPacketPayload {}
+    
+    public record CreateItemsGrabPacketPayload() implements CustomPacketPayload {}
+    
+    public record CreateItemsMessagePacketPayload() implements CustomPacketPayload {}
+    
+    public record MoveItemsNewPacketPayload() implements CustomPacketPayload {}
+    
+    public record NotEnoughItemsPacketPayload() implements CustomPacketPayload {}
+    
+    public record SyncDisplaysPacketPayload() implements CustomPacketPayload {}
     
     public static void onInitialize() {
         NetworkManager.registerReceiver(NetworkManager.c2s(), DELETE_ITEMS_PACKET, Collections.singletonList(new SplitPacketTransformer()), (buf, context) -> {
