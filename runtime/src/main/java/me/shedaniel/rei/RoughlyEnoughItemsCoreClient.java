@@ -235,9 +235,9 @@ public class RoughlyEnoughItemsCoreClient {
         loadTestPlugins();
         
         Minecraft client = Minecraft.getInstance();
-        NetworkManager.registerReceiver(NetworkManager.s2c(), RoughlyEnoughItemsNetwork.CREATE_ITEMS_MESSAGE_PACKET, (buf, context) -> {
-            ItemStack stack = buf.readLenientJsonWithCodec(ItemStack.OPTIONAL_CODEC);
-            String player = buf.readUtf(32767);
+        NetworkManager.registerReceiver(NetworkManager.s2c(), RoughlyEnoughItemsNetwork.CREATE_ITEMS_MESSAGE_PACKET_TYPE, RoughlyEnoughItemsNetwork.CreateItemsMessagePacketPayload.STREAM_CODEC, (payload, context) -> {
+            ItemStack stack = payload.itemStack();
+            String player = payload.playerName();
             if (client.player != null) {
                 client.player.displayClientMessage(Component.literal(I18n.get("text.rei.cheat_items").replaceAll("\\{item_name}", EntryStacks.of(stack.copy()).asFormattedText().getString()).replaceAll("\\{item_count}", stack.copy().getCount() + "").replaceAll("\\{player_name}", player)), false);
             }

@@ -187,10 +187,8 @@ public class RoughlyEnoughItemsNetwork {
                 return;
             }
             if (player.getInventory().add(payload.itemStack.copy())) {
-                RegistryFriendlyByteBuf newBuf = new RegistryFriendlyByteBuf(Unpooled.buffer(), player.registryAccess());
-                newBuf.writeJsonWithCodec(ItemStack.OPTIONAL_CODEC, payload.itemStack.copy());
-                newBuf.writeUtf(player.getScoreboardName(), 32767);
-                NetworkManager.sendToPlayer(player, RoughlyEnoughItemsNetwork.CREATE_ITEMS_MESSAGE_PACKET, newBuf);
+                var packet = new CreateItemsMessagePacketPayload(payload.itemStack.copy(), player.getScoreboardName());
+                NetworkManager.sendToPlayer(player, packet);
             } else {
                 player.displayClientMessage(Component.translatable("text.rei.failed_cheat_items"), false);
             }
@@ -211,10 +209,8 @@ public class RoughlyEnoughItemsNetwork {
             }
             menu.setCarried(stack.copy());
             menu.broadcastChanges();
-            RegistryFriendlyByteBuf newBuf = new RegistryFriendlyByteBuf(Unpooled.buffer(), player.registryAccess());
-            newBuf.writeJsonWithCodec(ItemStack.OPTIONAL_CODEC, stack.copy());
-            newBuf.writeUtf(player.getScoreboardName(), 32767);
-            NetworkManager.sendToPlayer(player, RoughlyEnoughItemsNetwork.CREATE_ITEMS_MESSAGE_PACKET, newBuf);
+            var packet = new CreateItemsMessagePacketPayload(stack.copy(), player.getScoreboardName());
+            NetworkManager.sendToPlayer(player, packet);
         });
         NetworkManager.registerReceiver(NetworkManager.c2s(), CREATE_ITEMS_HOTBAR_PACKET_TYPE, CreateItemsHotbarPacketPayload.STREAM_CODEC, (payload, context) -> {
             ServerPlayer player = (ServerPlayer) context.getPlayer();
@@ -228,10 +224,8 @@ public class RoughlyEnoughItemsNetwork {
                 AbstractContainerMenu menu = player.containerMenu;
                 player.getInventory().setItem(hotbarSlotId, stack.copy());
                 menu.broadcastChanges();
-                RegistryFriendlyByteBuf newBuf = new RegistryFriendlyByteBuf(Unpooled.buffer(), player.registryAccess());
-                newBuf.writeJsonWithCodec(ItemStack.OPTIONAL_CODEC, stack.copy());
-                newBuf.writeUtf(player.getScoreboardName(), 32767);
-                NetworkManager.sendToPlayer(player, RoughlyEnoughItemsNetwork.CREATE_ITEMS_MESSAGE_PACKET, newBuf);
+                var packet = new CreateItemsMessagePacketPayload(stack.copy(), player.getScoreboardName());
+                NetworkManager.sendToPlayer(player, packet);
             } else {
                 player.displayClientMessage(Component.translatable("text.rei.failed_cheat_items"), false);
             }
@@ -267,6 +261,7 @@ public class RoughlyEnoughItemsNetwork {
             }
         });
         if (Platform.getEnvironment() == Env.SERVER) {
+            NetworkManager.registerS2CPayloadType(CREATE_ITEMS_MESSAGE_PACKET_TYPE, CreateItemsMessagePacketPayload.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(DisplaySyncPacket.TYPE, DisplaySyncPacket.STREAM_CODEC, List.of(new SplitPacketTransformer()));
         }
     }
