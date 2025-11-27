@@ -219,9 +219,10 @@ public class ClientHelperImpl implements ClientHelper {
                 return false;
             }
             try {
-                RegistryFriendlyByteBuf newBuf = new RegistryFriendlyByteBuf(Unpooled.buffer(), Minecraft.getInstance().player.registryAccess());
-                newBuf.writeJsonWithCodec(ItemStack.OPTIONAL_CODEC, cheatedStack);
-                NetworkManager.sendToServer(ConfigObject.getInstance().isGrabbingItems() ? RoughlyEnoughItemsNetwork.CREATE_ITEMS_GRAB_PACKET : RoughlyEnoughItemsNetwork.CREATE_ITEMS_PACKET, newBuf);
+                var packet = ConfigObject.getInstance().isGrabbingItems()
+                        ? new RoughlyEnoughItemsNetwork.CreateItemsGrabPacketPayload(cheatedStack)
+                        : new RoughlyEnoughItemsNetwork.CreateItemsPacketPayload(cheatedStack);
+                NetworkManager.sendToServer(packet);
                 return true;
             } catch (Exception exception) {
                 return false;

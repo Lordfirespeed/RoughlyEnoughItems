@@ -96,7 +96,12 @@ public class RoughlyEnoughItemsNetwork {
         }
     }
     
-    public record CreateItemsPacketPayload() implements CustomPacketPayload {
+    public record CreateItemsPacketPayload(ItemStack itemStack) implements CustomPacketPayload {
+        public static final StreamCodec<RegistryFriendlyByteBuf, CreateItemsPacketPayload> STREAM_CODEC = StreamCodec.composite(
+                ItemStack.OPTIONAL_STREAM_CODEC, CreateItemsPacketPayload::itemStack,
+                CreateItemsPacketPayload::new
+        );
+        
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
             return CREATE_ITEMS_PACKET_TYPE;
@@ -110,7 +115,12 @@ public class RoughlyEnoughItemsNetwork {
         }
     }
     
-    public record CreateItemsGrabPacketPayload() implements CustomPacketPayload {
+    public record CreateItemsGrabPacketPayload(ItemStack itemStack) implements CustomPacketPayload {
+        public static final StreamCodec<RegistryFriendlyByteBuf, CreateItemsGrabPacketPayload> STREAM_CODEC = StreamCodec.composite(
+                ItemStack.OPTIONAL_STREAM_CODEC, CreateItemsGrabPacketPayload::itemStack,
+                CreateItemsGrabPacketPayload::new
+        );
+
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
             return CREATE_ITEMS_GRAB_PACKET_TYPE;
@@ -158,23 +168,22 @@ public class RoughlyEnoughItemsNetwork {
                 menu.broadcastChanges();
             }
         });
-        NetworkManager.registerReceiver(NetworkManager.c2s(), CREATE_ITEMS_PACKET, Collections.singletonList(new SplitPacketTransformer()), (buf, context) -> {
+        NetworkManager.registerReceiver(NetworkManager.c2s(), CREATE_ITEMS_PACKET_TYPE, CreateItemsPacketPayload.STREAM_CODEC, (payload, context) -> {
             ServerPlayer player = (ServerPlayer) context.getPlayer();
             if (player.getPermissionLevel() < player.level().getServer().operatorUserPermissionLevel()) {
                 player.displayClientMessage(Component.translatable("text.rei.no_permission_cheat").withStyle(ChatFormatting.RED), false);
                 return;
             }
-            ItemStack stack = buf.readLenientJsonWithCodec(ItemStack.OPTIONAL_CODEC);
-            if (player.getInventory().add(stack.copy())) {
+            if (player.getInventory().add(payload.itemStack.copy())) {
                 RegistryFriendlyByteBuf newBuf = new RegistryFriendlyByteBuf(Unpooled.buffer(), player.registryAccess());
-                newBuf.writeJsonWithCodec(ItemStack.OPTIONAL_CODEC, stack.copy());
+                newBuf.writeJsonWithCodec(ItemStack.OPTIONAL_CODEC, payload.itemStack.copy());
                 newBuf.writeUtf(player.getScoreboardName(), 32767);
                 NetworkManager.sendToPlayer(player, RoughlyEnoughItemsNetwork.CREATE_ITEMS_MESSAGE_PACKET, newBuf);
             } else {
                 player.displayClientMessage(Component.translatable("text.rei.failed_cheat_items"), false);
             }
         });
-        NetworkManager.registerReceiver(NetworkManager.c2s(), CREATE_ITEMS_GRAB_PACKET, Collections.singletonList(new SplitPacketTransformer()), (buf, context) -> {
+        NetworkManager.registerReceiver(NetworkManager.c2s(), CREATE_ITEMS_GRAB_PACKET_TYPE, CreateItemsGrabPacketPayload.STREAM_CODEC, (payload, context) -> {
             ServerPlayer player = (ServerPlayer) context.getPlayer();
             if (player.getPermissionLevel() < player.level().getServer().operatorUserPermissionLevel()) {
                 player.displayClientMessage(Component.translatable("text.rei.no_permission_cheat").withStyle(ChatFormatting.RED), false);
@@ -182,8 +191,7 @@ public class RoughlyEnoughItemsNetwork {
             }
             
             AbstractContainerMenu menu = player.containerMenu;
-            ItemStack itemStack = buf.readLenientJsonWithCodec(ItemStack.OPTIONAL_CODEC);
-            ItemStack stack = itemStack.copy();
+            ItemStack stack = payload.itemStack.copy();
             if (!menu.getCarried().isEmpty() && ItemStack.isSameItemSameComponents(menu.getCarried(), stack)) {
                 stack.setCount(Mth.clamp(stack.getCount() + menu.getCarried().getCount(), 1, stack.getMaxStackSize()));
             } else if (!menu.getCarried().isEmpty()) {
