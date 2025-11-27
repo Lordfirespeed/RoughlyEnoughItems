@@ -23,10 +23,12 @@
 
 package me.shedaniel.rei;
 
+import com.mojang.realmsclient.client.Request;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.transformers.SplitPacketTransformer;
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
@@ -39,6 +41,7 @@ import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessorRegistry;
 import me.shedaniel.rei.impl.common.networking.DisplaySyncPacket;
 import me.shedaniel.rei.impl.common.transfer.InputSlotCrafter;
 import me.shedaniel.rei.impl.common.transfer.NewInputSlotCrafter;
+import me.shedaniel.rei.impl.common.util.EmptyStreamCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
@@ -47,6 +50,8 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -83,6 +88,8 @@ public class RoughlyEnoughItemsNetwork {
     public static final CustomPacketPayload.Type<SyncDisplaysPacketPayload> SYNC_DISPLAYS_PACKET_TYPE = new CustomPacketPayload.Type<>(SYNC_DISPLAYS_PACKET);
     
     public record DeleteItemsPacketPayload() implements CustomPacketPayload {
+        public static final StreamCodec<RegistryFriendlyByteBuf, DeleteItemsPacketPayload> STREAM_CODEC = new EmptyStreamCodec<>(DeleteItemsPacketPayload::new);
+        
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
             return DELETE_ITEMS_PACKET_TYPE;
@@ -139,7 +146,7 @@ public class RoughlyEnoughItemsNetwork {
     }
     
     public static void onInitialize() {
-        NetworkManager.registerReceiver(NetworkManager.c2s(), DELETE_ITEMS_PACKET, Collections.singletonList(new SplitPacketTransformer()), (buf, context) -> {
+        NetworkManager.registerReceiver(NetworkManager.c2s(), DELETE_ITEMS_PACKET_TYPE, DeleteItemsPacketPayload.STREAM_CODEC, (payload, context) -> {
             ServerPlayer player = (ServerPlayer) context.getPlayer();
             if (player.getPermissionLevel() < player.level().getServer().operatorUserPermissionLevel()) {
                 player.displayClientMessage(Component.translatable("text.rei.no_permission_cheat").withStyle(ChatFormatting.RED), false);

@@ -187,7 +187,8 @@ public class ClientHelperImpl implements ClientHelper {
             inventoryScreen.isQuickCrafting = false;
             return;
         }
-        NetworkManager.sendToServer(RoughlyEnoughItemsNetwork.DELETE_ITEMS_PACKET, new RegistryFriendlyByteBuf(Unpooled.buffer(), Minecraft.getInstance().player.registryAccess()));
+        var packet = new RoughlyEnoughItemsNetwork.DeleteItemsPacketPayload();
+        NetworkManager.sendToServer(packet);
         if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> containerScreen) {
             containerScreen.isQuickCrafting = false;
         }
